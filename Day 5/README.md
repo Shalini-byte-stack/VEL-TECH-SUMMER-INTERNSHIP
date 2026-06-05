@@ -1,31 +1,46 @@
-# Real-Time Heart Rate Anomaly Detector
+# Real-Time Heart Rate Anomaly Detector - Healthcare
 
-## Problem Statement
-The goal of this project is to detect abnormal heart rate conditions from patient heart rate readings and classify them into Bradycardia, Normal, or Tachycardia categories.
+## Project Overview
+This project detects heart rate abnormalities using Machine Learning. The model analyzes heart rate data and classifies patient conditions into Bradycardia, Normal, and Tachycardia.
 
 ## Dataset
 HeartRate-Mat.csv
 
-## Algorithm
-Random Forest Classifier
-
 ## Features Used
 - Heart Rate
 - ECG Signal
-- SPO2
+- SPO2 Level
 - Respiration Rate
-- Stress Level
+- Stress Level Index
 - Activity Type
+- Fall Detection
 
-## Output Classes
-- Bradycardia (Heart Rate < 60 bpm)
-- Normal (Heart Rate 60–100 bpm)
-- Tachycardia (Heart Rate > 100 bpm)
+## Tasks Completed
+- Loaded and analyzed the dataset
+- Performed Exploratory Data Analysis (EDA)
+- Cleaned and preprocessed the data
+- Trained a Machine Learning model
+- Evaluated model performance
+- Saved the trained model as model.pkl
+- Predicted heart rate conditions
+- Created charts and visualizations
 
-## Model Accuracy
-XX%
+## Algorithm
+Random Forest Classifier
 
-## Files
+## Accuracy
+Add your model accuracy here
+
+## Libraries Used
+- Pandas
+- NumPy
+- Matplotlib
+- Seaborn
+- Scikit-learn
+- Pickle
+
+## Project Files
+- HeartRate-Mat.csv
 - load_data.py
 - eda.py
 - clean_data.py
@@ -33,21 +48,59 @@ XX%
 - predict.py
 - charts.py
 - model.pkl
+- README.md
 
 ## How to Run
 
-1. Install dependencies
+### Install Required Libraries
 
 ```bash
 pip install pandas numpy matplotlib seaborn scikit-learn
+```
+
+### Run Dataset Loading
+
+```bash
+python load_data.py
+```
+
+### Run EDA
+
+```bash
+python eda.py
+```
+
+### Run Data Cleaning
+
+```bash
+python clean_data.py
+```
+
+### Train Model
+
+```bash
 python train_model.py
+```
+
+### Run Prediction
+
+```bash
 python predict.py
+```
 
----
+## Output
+- Dataset Analysis
+- Heart Rate Visualizations
+- Trained Machine Learning Model
+- Bradycardia Prediction
+- Normal Prediction
+- Tachycardia Prediction
 
-### Step 4: Save the File
+## Author
+Shalini S
 
-Press:
+B.Tech Artificial Intelligence & Data Science
 
-```text
-Ctrl + S
+Vel Tech, Chennai
+
+Track 1 Mini Project
