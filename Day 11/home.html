@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Home – Student Portal{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <h1>Welcome to <span>Student Portal</span></h1>
+  <p>Manage student records, track academic performance, and register new students — all in one place.</p>
+  <div class="hero-btns">
+    <a href="{{ url_for('register') }}" class="btn btn-primary">Register Student</a>
+    <a href="{{ url_for('student_list') }}" class="btn btn-outline">View Students</a>
+  </div>
+</section>
+
+<section class="stats-section">
+  <h2>Overview</h2>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span class="stat-number">{{ total }}</span>
+      <span class="stat-label">Total Students</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-number">{{ avg_g3 }}</span>
+      <span class="stat-label">Avg Final Grade</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-number">{{ passed }}</span>
+      <span class="stat-label">Students Passed</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-number">{{ total - passed }}</span>
+      <span class="stat-label">Need Support</span>
+    </div>
+  </div>
+</section>
+
+<section class="features-section">
+  <h2>What You Can Do</h2>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">📝</div>
+      <h3>Register Students</h3>
+      <p>Add new student records with school, age, address, and study preferences.</p>
+      <a href="{{ url_for('register') }}" class="feature-link">Go to Registration →</a>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📋</div>
+      <h3>View All Students</h3>
+      <p>Browse the complete student list with grades and performance indicators.</p>
+      <a href="{{ url_for('student_list') }}" class="feature-link">View Students →</a>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">ℹ️</div>
+      <h3>About This App</h3>
+      <p>Learn about the project, the dataset used, and the technology stack.</p>
+      <a href="{{ url_for('about') }}" class="feature-link">Learn More →</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

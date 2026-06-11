@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}About – Student Portal{% endblock %}
+
+{% block content %}
+<section class="page-header">
+  <h1>About This Project</h1>
+  <p>A Flask-based student management system built as a demo project.</p>
+</section>
+
+<div class="about-grid">
+  <div class="about-card">
+    <div class="about-icon">🎯</div>
+    <h3>Project Goal</h3>
+    <p>This application demonstrates a full-stack web application using Flask. It includes routing, templating with Jinja2, form handling, and a professional UI — showcasing core Flask development skills.</p>
+  </div>
+
+  <div class="about-card">
+    <div class="about-icon">🗄️</div>
+    <h3>Dataset</h3>
+    <p>The dummy data is inspired by the <strong>Student Performance Dataset</strong> (student-mat.csv) which contains 395 records of secondary school students, including grades (G1, G2, G3), demographics, and study habits.</p>
+  </div>
+
+  <div class="about-card">
+    <div class="about-icon">🛠️</div>
+    <h3>Tech Stack</h3>
+    <ul class="tech-list">
+      <li>🐍 Python 3</li>
+      <li>🌐 Flask (micro web framework)</li>
+      <li>🎨 HTML5 + CSS3</li>
+      <li>📄 Jinja2 Templating</li>
+    </ul>
+  </div>
+
+  <div class="about-card">
+    <div class="about-icon">📁</div>
+    <h3>Folder Structure</h3>
+    <pre class="code-block">student_portal/
+├── app.py
+├── templates/
+│   ├── base.html
+│   ├── home.html
+│   ├── register.html
+│   ├── students.html
+│   └── about.html
+└── static/
+    └── css/
+        └── style.css</pre>
+  </div>
+</div>
+
+<div class="about-features">
+  <h2>Features</h2>
+  <div class="features-grid">
+    <div class="feature-item">✅ Flask Routing (<code>render_template</code>)</div>
+    <div class="feature-item">✅ Base template with Jinja2 inheritance</div>
+    <div class="feature-item">✅ Student registration form with POST handling</div>
+    <div class="feature-item">✅ Flash messages for user feedback</div>
+    <div class="feature-item">✅ Responsive navigation bar</div>
+    <div class="feature-item">✅ Styled data table with status badges</div>
+    <div class="feature-item">✅ Consistent color theme across all pages</div>
+    <div class="feature-item">✅ Hover effects &amp; active nav link</div>
+  </div>
+</div>
+{% endblock %}

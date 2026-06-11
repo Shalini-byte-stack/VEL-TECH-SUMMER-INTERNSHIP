@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Students – Student Portal{% endblock %}
+
+{% block content %}
+<section class="page-header">
+  <h1>Student Records</h1>
+  <p>All registered students and their academic performance.</p>
+  <a href="{{ url_for('register') }}" class="btn btn-primary" style="margin-top:1rem; display:inline-block;">+ Add Student</a>
+</section>
+
+<div class="table-container">
+  <table class="students-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>School</th>
+        <th>Age</th>
+        <th>Address</th>
+        <th>Study Time</th>
+        <th>Internet</th>
+        <th>G1</th>
+        <th>G2</th>
+        <th>Final (G3)</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in students %}
+      <tr>
+        <td>{{ s.id }}</td>
+        <td class="name-cell">{{ s.name }}</td>
+        <td><span class="badge badge-school">{{ s.school }}</span></td>
+        <td>{{ s.age }}</td>
+        <td>{{ s.address }}</td>
+        <td>
+          {% if s.studytime == 1 %}&lt;2 hrs
+          {% elif s.studytime == 2 %}2–5 hrs
+          {% elif s.studytime == 3 %}5–10 hrs
+          {% else %}&gt;10 hrs{% endif %}
+        </td>
+        <td>
+          {% if s.internet == "Yes" %}
+            <span class="badge badge-yes">Yes</span>
+          {% else %}
+            <span class="badge badge-no">No</span>
+          {% endif %}
+        </td>
+        <td>{{ s.G1 }}</td>
+        <td>{{ s.G2 }}</td>
+        <td><strong>{{ s.G3 }}</strong></td>
+        <td>
+          {% if s.G3 >= 15 %}
+            <span class="badge badge-excellent">Excellent</span>
+          {% elif s.G3 >= 10 %}
+            <span class="badge badge-pass">Pass</span>
+          {% else %}
+            <span class="badge badge-fail">Fail</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<p class="table-footer">Showing {{ students|length }} student(s)</p>
+{% endblock %}

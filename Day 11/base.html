@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}Student Portal{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="{{ url_for('home') }}" class="nav-logo">🎓 StudentPortal</a>
+      <ul class="nav-links">
+        <li><a href="{{ url_for('home') }}"         class="{% if request.endpoint == 'home' %}active{% endif %}">Home</a></li>
+        <li><a href="{{ url_for('register') }}"     class="{% if request.endpoint == 'register' %}active{% endif %}">Register</a></li>
+        <li><a href="{{ url_for('student_list') }}" class="{% if request.endpoint == 'student_list' %}active{% endif %}">Students</a></li>
+        <li><a href="{{ url_for('about') }}"        class="{% if request.endpoint == 'about' %}active{% endif %}">About</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <p>© 2026 StudentPortal &nbsp;|&nbsp; Built with Flask &amp; Python</p>
+  </footer>
+
+</body>
+</html>
