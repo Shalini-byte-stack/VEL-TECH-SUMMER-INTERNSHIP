@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Home — Student Registration System</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-logo">🎓 <span>Student</span>RS</div>
+    <div class="nav-links">
+      <a href="{{ url_for('home') }}" class="active">Home</a>
+      <a href="{{ url_for('register') }}">Register</a>
+      <a href="{{ url_for('students_list') }}">Students</a>
+      <a href="{{ url_for('about') }}">About</a>
+    </div>
+  </nav>
+
+  <div class="page">
+
+    <!-- Hero Section -->
+    <div class="hero">
+      <h1>Student Registration System</h1>
+      <p>A simple and professional system to manage student records, registrations, and information.</p>
+      <div class="hero-btns">
+        <a href="{{ url_for('register') }}" class="btn btn-primary">+ Register Student</a>
+        <a href="{{ url_for('students_list') }}" class="btn btn-outline">View All Students</a>
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="num">{{ total }}</div>
+        <div class="lbl">Total Students</div>
+      </div>
+      <div class="stat-card">
+        <div class="num green">4</div>
+        <div class="lbl">Departments</div>
+      </div>
+      <div class="stat-card">
+        <div class="num yellow">2025</div>
+        <div class="lbl">Academic Year</div>
+      </div>
+    </div>
+
+    <!-- Features -->
+    <h2 class="page-title">What You Can Do</h2>
+    <p class="page-subtitle">Everything you need to manage student records in one place</p>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">📝</div>
+        <h3>Register Students</h3>
+        <p>Add new students with their personal details, department, and academic year easily.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📋</div>
+        <h3>View Records</h3>
+        <p>Browse all registered students in a clean table with search functionality.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>Secure & Organized</h3>
+        <p>All student data is stored securely and organized by department and year.</p>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

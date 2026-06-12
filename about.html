@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>About — SRS</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-logo">🎓 <span>Student</span>RS</div>
+    <div class="nav-links">
+      <a href="{{ url_for('home') }}">Home</a>
+      <a href="{{ url_for('register') }}">Register</a>
+      <a href="{{ url_for('students_list') }}">Students</a>
+      <a href="{{ url_for('about') }}" class="active">About</a>
+    </div>
+  </nav>
+
+  <div class="page">
+
+    <h1 class="page-title">About This Project</h1>
+    <p class="page-subtitle">Built as part of Innolift Ventures Internship — Day 1 Task</p>
+
+    <!-- Project Info -->
+    <div class="card">
+      <h2 style="font-family:'Space Grotesk',sans-serif; font-size:1.1rem; margin-bottom:0.75rem; color:var(--accent2);">📌 Project Overview</h2>
+      <p style="color:var(--muted); line-height:1.7; font-size:0.9rem;">
+        The <strong style="color:var(--text);">Student Registration System (SRS)</strong> is a web application built using
+        <strong style="color:var(--text);">Python Flask</strong> for the backend and
+        <strong style="color:var(--text);">HTML + CSS</strong> for the frontend.
+        It allows institutions to register students, view student records, and manage basic
+        academic information — all in one clean interface.
+      </p>
+    </div>
+
+    <!-- Tech Stack -->
+    <div class="card">
+      <h2 style="font-family:'Space Grotesk',sans-serif; font-size:1.1rem; margin-bottom:1rem; color:var(--accent2);">🛠️ Tech Stack</h2>
+      <div style="display:flex; flex-wrap:wrap; gap:0.75rem;">
+        <span class="pill pill-purple" style="font-size:0.85rem; padding:6px 16px;">Python 3</span>
+        <span class="pill pill-green"  style="font-size:0.85rem; padding:6px 16px;">Flask</span>
+        <span class="pill pill-yellow" style="font-size:0.85rem; padding:6px 16px;">HTML5</span>
+        <span class="pill pill-purple" style="font-size:0.85rem; padding:6px 16px;">CSS3</span>
+        <span class="pill pill-green"  style="font-size:0.85rem; padding:6px 16px;">Jinja2 Templates</span>
+        <span class="pill pill-yellow" style="font-size:0.85rem; padding:6px 16px;">SQLite (Day 2)</span>
+      </div>
+    </div>
+
+    <!-- Team -->
+    <h2 style="font-family:'Space Grotesk',sans-serif; font-size:1.1rem; margin-bottom:1rem;">👥 Team Members</h2>
+    <div class="about-grid">
+      <div class="team-card">
+        <div class="avatar">Y</div>
+        <div class="team-info">
+          <h4>Yuvaraju</h4>
+          <p>AI & Data Science — 2nd Year</p>
+        </div>
+      </div>
+      <div class="team-card">
+        <div class="avatar">S</div>
+        <div class="team-info">
+          <h4>Shalini</h4>
+          <p>AI & Data Science — 2nd Year</p>
+        </div>
+      </div>
+      <div class="team-card">
+        <div class="avatar">A</div>
+        <div class="team-info">
+          <h4>Akshara</h4>
+          <p>AI & Data Science — 2nd Year</p>
+        </div>
+      </div>
+      <div class="team-card">
+        <div class="avatar">D</div>
+        <div class="team-info">
+          <h4>Dr. Deepa</h4>
+          <p>Project Supervisor</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Innolift -->
+    <div class="card" style="margin-top:1.5rem; text-align:center;">
+      <p style="color:var(--muted); font-size:0.875rem;">
+        Built with 💜 for <strong style="color:var(--accent);">Innolift Ventures Internship 2025</strong> — Track 2
+      </p>
+    </div>
+
+  </div>
+
+</body>
+</html>

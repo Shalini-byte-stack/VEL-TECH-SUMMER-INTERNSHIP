@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Students List — SRS</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-logo">🎓 <span>Student</span>RS</div>
+    <div class="nav-links">
+      <a href="{{ url_for('home') }}">Home</a>
+      <a href="{{ url_for('register') }}">Register</a>
+      <a href="{{ url_for('students_list') }}" class="active">Students</a>
+      <a href="{{ url_for('about') }}">About</a>
+    </div>
+  </nav>
+
+  <div class="page">
+
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.4rem;">
+      <h1 class="page-title" style="margin-bottom:0;">All Students</h1>
+      <a href="{{ url_for('register') }}" class="btn btn-primary">+ Register New</a>
+    </div>
+    <p class="page-subtitle">{{ students|length }} student(s) in database</p>
+
+    <!-- Search -->
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="🔍  Search by name, roll, or department..." oninput="filterTable()"/>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      {% if students %}
+      <table id="studentTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Roll No.</th>
+            <th>Email</th>
+            <th>Department</th>
+            <th>Year</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in students %}
+          <tr>
+            <td style="color:var(--muted)">{{ loop.index }}</td>
+            <td><strong>{{ s["name"] }}</strong></td>
+            <td><span class="pill pill-purple">{{ s["roll"] }}</span></td>
+            <td style="color:var(--muted)">{{ s["email"] }}</td>
+            <td><span class="pill pill-green">{{ s["dept"] }}</span></td>
+            <td><span class="pill pill-yellow">{{ s["year"] }}</span></td>
+            <td>
+              <a href="{{ url_for('delete_student', sid=s['id']) }}"
+                 class="btn btn-danger"
+                 style="font-size:0.78rem; padding:0.35rem 0.85rem;"
+                 onclick="return confirm('Delete {{ s[\'name\'] }}?')">
+                🗑 Delete
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div style="text-align:center; padding:3rem; color:var(--muted);">
+        <div style="font-size:2.5rem; margin-bottom:0.5rem;">🎓</div>
+        No students registered yet.
+        <a href="{{ url_for('register') }}" style="color:var(--accent);">Register one now!</a>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <script>
+    function filterTable() {
+      const q = document.getElementById("searchInput").value.toLowerCase();
+      document.querySelectorAll("#studentTable tbody tr").forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(q) ? "" : "none";
+      });
+    }
+  </script>
+
+</body>
+</html>
