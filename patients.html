@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Patients – HeartCare Portal{% endblock %}
+{% block content %}
+
+<section class="page-header">
+  <h1>🩺 Patient Records</h1>
+  <p>All records fetched live from SQLite3 database. Total: <strong>{{ patients|length }}</strong> patient(s).</p>
+  <a href="{{ url_for('register') }}" class="btn btn-primary" style="margin-top:1rem;display:inline-block;">+ Register New Patient</a>
+</section>
+
+{% if patients %}
+<div class="table-container">
+  <table class="students-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>Gender</th>
+        <th>Phone</th>
+        <th>Heart Rate</th>
+        <th>BP (Sys/Dia)</th>
+        <th>Glucose</th>
+        <th>ECG</th>
+        <th>SpO2</th>
+        <th>Stress</th>
+        <th>Activity</th>
+        <th>Condition</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in patients %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td class="name-cell">{{ p.name }}</td>
+        <td>
+          {% if p.gender == 'Female' %}<span class="badge badge-female">Female</span>
+          {% elif p.gender == 'Male' %}<span class="badge badge-male">Male</span>
+          {% else %}<span class="badge badge-other">{{ p.gender }}</span>{% endif %}
+        </td>
+        <td>{{ p.phone }}</td>
+        <td class="vital-cell"><strong>{{ p.heart_rate }}</strong> BPM</td>
+        <td class="vital-cell">{{ p.blood_pressure_sys }}/{{ p.blood_pressure_dia }}</td>
+        <td class="vital-cell">{{ p.blood_glucose }} mg/dL</td>
+        <td class="vital-cell">{{ p.ecg_signal }}</td>
+        <td class="vital-cell">{{ p.spo2_level if p.spo2_level else '—' }}%</td>
+        <td class="vital-cell">{{ p.stress_level_index if p.stress_level_index else '—' }}</td>
+        <td>{{ p.activity_type if p.activity_type else '—' }}</td>
+        <td>
+          {% if p.condition == 'Normal' %}
+            <span class="badge badge-normal">✅ Normal</span>
+          {% elif p.condition == 'Bradycardia' %}
+            <span class="badge badge-brady">🔵 Bradycardia</span>
+          {% else %}
+            <span class="badge badge-tachy">🔴 Tachycardia</span>
+          {% endif %}
+        </td>
+        <td class="action-btns">
+          <a href="{{ url_for('edit', pid=p.id) }}" class="btn-edit">✏️ Edit</a>
+          <form method="POST" action="{{ url_for('delete', pid=p.id) }}"
+                onsubmit="return confirm('Delete patient {{ p.name }}?')">
+            <button type="submit" class="btn-delete">🗑 Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<p class="table-footer">{{ patients|length }} patient record(s) from patients.db (SQLite3)</p>
+
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">📭</div>
+  <h3>No Patients Registered Yet</h3>
+  <p>The database is empty. Register your first patient to get started.</p>
+  <a href="{{ url_for('register') }}" class="btn btn-primary">Register First Patient</a>
+</div>
+{% endif %}
+
+{% endblock %}

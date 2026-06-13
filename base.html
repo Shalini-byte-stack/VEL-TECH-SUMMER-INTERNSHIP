@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}HeartCare Portal{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-container">
+    <a href="{{ url_for('home') }}" class="nav-logo">❤️ HeartCare Portal</a>
+    <ul class="nav-links">
+      <li><a href="{{ url_for('home') }}"        {% if request.endpoint=='home' %}class="active"{% endif %}>🏠 Home</a></li>
+      <li><a href="{{ url_for('register') }}"    {% if request.endpoint=='register' %}class="active"{% endif %}>📝 Register</a></li>
+      <li><a href="{{ url_for('patient_list') }}"{% if request.endpoint=='patient_list' %}class="active"{% endif %}>🩺 Patients</a></li>
+      <li><a href="{{ url_for('about') }}"       {% if request.endpoint=='about' %}class="active"{% endif %}>ℹ️ About</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main class="main-content">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+  <p>© 2026 HeartCare Portal &nbsp;·&nbsp; Flask + SQLite3 &nbsp;·&nbsp; Heart Rate Anomaly Detection System</p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Register Patient – HeartCare Portal{% endblock %}
+{% block content %}
+
+<section class="page-header">
+  <h1>📝 Patient Registration Form</h1>
+  <p>All fields marked with <span class="required">*</span> are required. Data is saved to SQLite3 and heart condition is auto-classified.</p>
+</section>
+
+<div class="form-container">
+  <form class="student-form" method="POST" action="{{ url_for('register') }}">
+
+    <div class="form-section-title">👤 Personal Information</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Patient Name <span class="required">*</span></label>
+        <input type="text" name="name" placeholder="e.g. Priya Sharma" required/>
+      </div>
+      <div class="form-group">
+        <label>Gender <span class="required">*</span></label>
+        <select name="gender" required>
+          <option value="" disabled selected>Select Gender</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Phone Number <span class="required">*</span></label>
+        <input type="tel" name="phone" placeholder="e.g. 9876543210" required/>
+      </div>
+      <div class="form-group">
+        <label>Activity Type</label>
+        <select name="activity_type">
+          <option value="">Select Activity</option>
+          <option value="resting">Resting</option>
+          <option value="walking">Walking</option>
+          <option value="running">Running</option>
+          <option value="sleeping">Sleeping</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Address <span class="required">*</span></label>
+      <textarea name="address" rows="2" placeholder="Enter full address..." required></textarea>
+    </div>
+
+    <div class="form-section-title">💓 Heart & Vitals</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Heart Rate (BPM) <span class="required">*</span></label>
+        <input type="number" name="heart_rate" step="0.1" min="30" max="220" placeholder="e.g. 75" required/>
+        <small class="hint">Normal: 60–100 BPM</small>
+      </div>
+      <div class="form-group">
+        <label>ECG Signal <span class="required">*</span></label>
+        <input type="number" name="ecg_signal" step="0.001" placeholder="e.g. 0.123" required/>
+        <small class="hint">Electrocardiogram reading</small>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Blood Pressure Systolic <span class="required">*</span></label>
+        <input type="number" name="blood_pressure_sys" step="0.1" placeholder="e.g. 120" required/>
+        <small class="hint">Upper value (mmHg)</small>
+      </div>
+      <div class="form-group">
+        <label>Blood Pressure Diastolic <span class="required">*</span></label>
+        <input type="number" name="blood_pressure_dia" step="0.1" placeholder="e.g. 80" required/>
+        <small class="hint">Lower value (mmHg)</small>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Blood Glucose (mg/dL) <span class="required">*</span></label>
+        <input type="number" name="blood_glucose" step="0.1" placeholder="e.g. 110" required/>
+        <small class="hint">Normal: 70–140 mg/dL</small>
+      </div>
+      <div class="form-group">
+        <label>SpO2 Level (%)</label>
+        <input type="number" name="spo2_level" step="0.1" min="80" max="100" placeholder="e.g. 98.5"/>
+        <small class="hint">Blood oxygen saturation</small>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Stress Level Index</label>
+        <input type="number" name="stress_level_index" step="1" min="0" max="100" placeholder="e.g. 45"/>
+        <small class="hint">0 = No stress, 100 = Max stress</small>
+      </div>
+    </div>
+
+    <div class="info-box">
+      💡 <strong>Auto-Classification:</strong> Heart condition (Normal / Bradycardia / Tachycardia) is automatically determined from the Heart Rate value when you save.
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">💾 Save to Database</button>
+      <button type="reset" class="btn btn-outline">🔄 Clear Form</button>
+      <a href="{{ url_for('patient_list') }}" class="btn btn-gray">🩺 View Patients</a>
+    </div>
+
+  </form>
+</div>
+
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Edit Patient – HeartCare Portal{% endblock %}
+{% block content %}
+
+<section class="page-header">
+  <h1>✏️ Edit Patient</h1>
+  <p>Updating record for <strong>{{ patient.name }}</strong>. Condition is re-classified automatically on save.</p>
+</section>
+
+<div class="form-container">
+  <form class="student-form" method="POST" action="{{ url_for('edit', pid=patient.id) }}">
+
+    <div class="form-section-title">👤 Personal Information</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Patient Name <span class="required">*</span></label>
+        <input type="text" name="name" value="{{ patient.name }}" required/>
+      </div>
+      <div class="form-group">
+        <label>Gender <span class="required">*</span></label>
+        <select name="gender" required>
+          <option value="Male"   {% if patient.gender=='Male' %}selected{% endif %}>Male</option>
+          <option value="Female" {% if patient.gender=='Female' %}selected{% endif %}>Female</option>
+          <option value="Other"  {% if patient.gender=='Other' %}selected{% endif %}>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Phone <span class="required">*</span></label>
+        <input type="tel" name="phone" value="{{ patient.phone }}" required/>
+      </div>
+      <div class="form-group">
+        <label>Activity Type</label>
+        <select name="activity_type">
+          <option value="">Select Activity</option>
+          <option value="resting"  {% if patient.activity_type=='resting' %}selected{% endif %}>Resting</option>
+          <option value="walking"  {% if patient.activity_type=='walking' %}selected{% endif %}>Walking</option>
+          <option value="running"  {% if patient.activity_type=='running' %}selected{% endif %}>Running</option>
+          <option value="sleeping" {% if patient.activity_type=='sleeping' %}selected{% endif %}>Sleeping</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Address <span class="required">*</span></label>
+      <textarea name="address" rows="2" required>{{ patient.address }}</textarea>
+    </div>
+
+    <div class="form-section-title">💓 Heart & Vitals</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Heart Rate (BPM) <span class="required">*</span></label>
+        <input type="number" name="heart_rate" step="0.1" value="{{ patient.heart_rate }}" required/>
+        <small class="hint">Normal: 60–100 BPM</small>
+      </div>
+      <div class="form-group">
+        <label>ECG Signal <span class="required">*</span></label>
+        <input type="number" name="ecg_signal" step="0.001" value="{{ patient.ecg_signal }}" required/>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Blood Pressure Systolic <span class="required">*</span></label>
+        <input type="number" name="blood_pressure_sys" step="0.1" value="{{ patient.blood_pressure_sys }}" required/>
+      </div>
+      <div class="form-group">
+        <label>Blood Pressure Diastolic <span class="required">*</span></label>
+        <input type="number" name="blood_pressure_dia" step="0.1" value="{{ patient.blood_pressure_dia }}" required/>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Blood Glucose (mg/dL) <span class="required">*</span></label>
+        <input type="number" name="blood_glucose" step="0.1" value="{{ patient.blood_glucose }}" required/>
+      </div>
+      <div class="form-group">
+        <label>SpO2 Level (%)</label>
+        <input type="number" name="spo2_level" step="0.1" value="{{ patient.spo2_level if patient.spo2_level else '' }}"/>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Stress Level Index</label>
+        <input type="number" name="stress_level_index" step="1" value="{{ patient.stress_level_index if patient.stress_level_index else '' }}"/>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">💾 Update Database</button>
+      <a href="{{ url_for('patient_list') }}" class="btn btn-outline">Cancel</a>
+    </div>
+
+  </form>
+</div>
+{% endblock %}

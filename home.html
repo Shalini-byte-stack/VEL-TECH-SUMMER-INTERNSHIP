@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Home – HeartCare Portal{% endblock %}
+{% block content %}
+
+<section class="hero">
+  <div class="hero-text">
+    <h1>Heart Rate <span>Anomaly Detection</span> System</h1>
+    <p>A real-time patient monitoring system powered by Flask and SQLite3. Register patients, monitor heart rate, ECG, blood pressure, and glucose levels — all stored in a live database.</p>
+    <div class="hero-btns">
+      <a href="{{ url_for('register') }}" class="btn btn-primary">📝 Register Patient</a>
+      <a href="{{ url_for('patient_list') }}" class="btn btn-outline">🩺 View Patients</a>
+    </div>
+  </div>
+</section>
+
+<section class="stats-section">
+  <h2 class="section-title">📊 Live Database Overview</h2>
+  <div class="stats-grid">
+    <div class="stat-card stat-total">
+      <span class="stat-icon">👥</span>
+      <span class="stat-number">{{ total }}</span>
+      <span class="stat-label">Total Patients</span>
+    </div>
+    <div class="stat-card stat-normal">
+      <span class="stat-icon">✅</span>
+      <span class="stat-number">{{ normal }}</span>
+      <span class="stat-label">Normal</span>
+    </div>
+    <div class="stat-card stat-brady">
+      <span class="stat-icon">🔵</span>
+      <span class="stat-number">{{ brady }}</span>
+      <span class="stat-label">Bradycardia</span>
+    </div>
+    <div class="stat-card stat-tachy">
+      <span class="stat-icon">🔴</span>
+      <span class="stat-number">{{ tachy }}</span>
+      <span class="stat-label">Tachycardia</span>
+    </div>
+    <div class="stat-card stat-avg">
+      <span class="stat-icon">💓</span>
+      <span class="stat-number">{{ avg_hr }}</span>
+      <span class="stat-label">Avg Heart Rate (BPM)</span>
+    </div>
+    <div class="stat-card stat-latest">
+      <span class="stat-icon">⭐</span>
+      <span class="stat-number" style="font-size:1rem">{{ latest_name }}</span>
+      <span class="stat-label">Latest Patient</span>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2 class="section-title">🩺 Heart Rate Classification</h2>
+  <div class="condition-grid">
+    <div class="condition-card normal-card">
+      <div class="condition-icon">✅</div>
+      <h3>Normal</h3>
+      <p class="condition-range">60 – 100 BPM</p>
+      <p>Heart rate is within the healthy range. No anomaly detected.</p>
+    </div>
+    <div class="condition-card brady-card">
+      <div class="condition-icon">🔵</div>
+      <h3>Bradycardia</h3>
+      <p class="condition-range">Below 60 BPM</p>
+      <p>Heart rate is too slow. May indicate cardiac or thyroid issues.</p>
+    </div>
+    <div class="condition-card tachy-card">
+      <div class="condition-icon">🔴</div>
+      <h3>Tachycardia</h3>
+      <p class="condition-range">Above 100 BPM</p>
+      <p>Heart rate is too fast. May indicate stress, fever, or cardiac issues.</p>
+    </div>
+  </div>
+</section>
+
+<section style="margin-top:2rem;">
+  <h2 class="section-title">⚙️ CRUD Features</h2>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">➕</div>
+      <h3>Create</h3>
+      <p>Register a new patient with full medical vitals. Auto-classifies heart condition on save.</p>
+      <a href="{{ url_for('register') }}" class="feature-link">Register Now →</a>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📋</div>
+      <h3>Read</h3>
+      <p>View all patient records fetched live from SQLite3 with condition badges and vitals.</p>
+      <a href="{{ url_for('patient_list') }}" class="feature-link">View Patients →</a>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">✏️</div>
+      <h3>Update</h3>
+      <p>Edit any patient's vitals. Condition is automatically re-classified on update.</p>
+      <a href="{{ url_for('patient_list') }}" class="feature-link">Edit Patients →</a>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🗑️</div>
+      <h3>Delete</h3>
+      <p>Remove a patient record permanently from the database with a confirmation prompt.</p>
+      <a href="{{ url_for('patient_list') }}" class="feature-link">Manage Records →</a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
