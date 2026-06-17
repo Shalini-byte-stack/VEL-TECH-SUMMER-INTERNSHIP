@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="HeartSync — Caretaker alert log">
+    <title>HeartSync — Alerts</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+{% set active_page = 'alerts' %}
+{% include '_navbar.html' %}
+
+<div class="page-body page-body-full">
+    <main class="main main-full">
+
+        <!-- Flash Alerts -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-stack">
+            {% for cat, msg in messages %}
+            <div class="flash flash-{{ cat }}">
+                <i class="fa-solid {% if cat == 'success' %}fa-circle-check{% else %}fa-circle-exclamation{% endif %}"></i>
+                <span>{{ msg }}</span>
+                <button onclick="this.parentElement.remove()">✕</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <!-- Page Title -->
+        <div class="page-title">
+            <div>
+                <h1>Caretaker Alert Log</h1>
+                <p>SMS notifications sent to patient caretakers for critical readings (anomalies, falls, low SpO2, hypertension)</p>
+            </div>
+        </div>
+
+        {% if not twilio_configured %}
+        <div class="flash flash-error" style="margin-bottom:1rem;">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>
+                Twilio is not configured, so alerts below are <strong>simulated</strong> (logged but not actually
+                sent as SMS). Set <code>TWILIO_ACCOUNT_SID</code>, <code>TWILIO_AUTH_TOKEN</code> and
+                <code>TWILIO_FROM_NUMBER</code> environment variables to enable real SMS delivery.
+            </span>
+        </div>
+        {% endif %}
+
+        <!-- KPI Cards -->
+        <section class="kpi-row">
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-cyan"><i class="fa-solid fa-bell"></i></div>
+                <div class="kpi-body">
+                    <span class="kpi-label">Total Alerts</span>
+                    <span class="kpi-value">{{ alerts|length }}</span>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-green"><i class="fa-solid fa-paper-plane"></i></div>
+                <div class="kpi-body">
+                    <span class="kpi-label">Sent</span>
+                    <span class="kpi-value">{{ alerts|selectattr('status','equalto','sent')|list|length }}</span>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-orange"><i class="fa-solid fa-vial-circle-check"></i></div>
+                <div class="kpi-body">
+                    <span class="kpi-label">Simulated</span>
+                    <span class="kpi-value">{{ alerts|selectattr('status','equalto','simulated')|list|length }}</span>
+                </div>
+            </div>
+            <div class="kpi-card kpi-border-red">
+                <div class="kpi-icon kpi-red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div class="kpi-body">
+                    <span class="kpi-label">Failed / No Number</span>
+                    <span class="kpi-value text-red">{{ alerts|rejectattr('status','equalto','sent')|rejectattr('status','equalto','simulated')|list|length }}</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Alerts Table -->
+        <section class="panel">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="fa-solid fa-table-list"></i> Alert History</h2>
+            </div>
+            <div class="table-scroll">
+                <table id="alerts-tbl">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Time</th>
+                            <th>Patient</th>
+                            <th>Caretaker</th>
+                            <th>Phone</th>
+                            <th>Reason(s)</th>
+                            <th>Message</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in alerts %}
+                        <tr>
+                            <td class="text-muted">{{ a.id }}</td>
+                            <td class="text-muted text-xs">{{ a.created_at }}</td>
+                            <td class="fw-bold">{{ a.patient_id }}</td>
+                            <td>{{ a.caretaker_name or '—' }}</td>
+                            <td>{{ a.caretaker_phone or '—' }}</td>
+                            <td class="text-xs">{{ a.reasons }}</td>
+                            <td class="text-xs">{{ a.message }}</td>
+                            <td>
+                                {% if a.status == 'sent' %}
+                                <span class="status-chip normal"><i class="fa-solid fa-check"></i> Sent</span>
+                                {% elif a.status == 'simulated' %}
+                                <span class="status-chip simulated"><i class="fa-solid fa-flask"></i> Simulated</span>
+                                {% elif a.status == 'skipped' %}
+                                <span class="status-chip skipped"><i class="fa-solid fa-minus"></i> No Number</span>
+                                {% else %}
+                                <span class="status-chip outlier"><i class="fa-solid fa-triangle-exclamation"></i> Failed</span>
+                                {% endif %}
+                                {% if a.error %}
+                                <div class="text-xs text-muted" style="margin-top:0.2rem;">{{ a.error }}</div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="8" class="text-muted text-center">No alerts have been triggered yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+</div><!-- /page-body -->
+
+{% include '_chatbot.html' %}
+</body>
+</html>

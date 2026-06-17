@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="HeartSync — ECG & health anomaly detection dashboard">
+    <title>HeartSync — Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+</head>
+<body>
+
+{% include '_navbar.html' %}
+
+<!-- ═══════════════════════════ PAGE BODY ═══════════════════════════ -->
+<div class="page-body">
+
+    <!-- ─── Sidebar ─── -->
+    <aside class="sidebar">
+
+        <!-- Quick CSV Upload -->
+        <div class="side-card">
+            <div class="side-card-title">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Batch Upload
+            </div>
+            <form action="{{ url_for('upload_file') }}" method="POST"
+                  enctype="multipart/form-data" id="upload-form">
+                <div class="drop-zone" id="drop-zone">
+                    <i class="fa-solid fa-file-csv drop-icon"></i>
+                    <p class="drop-hint">Drag &amp; drop CSV here</p>
+                    <label for="file-input" class="btn btn-ghost btn-sm">Browse</label>
+                    <input type="file" id="file-input" name="file" accept=".csv" style="display:none">
+                    <span id="file-label" class="file-label">No file chosen</span>
+                </div>
+                <button type="submit" id="upload-btn" class="btn btn-secondary btn-block" disabled>
+                    <i class="fa-solid fa-upload"></i> Upload &amp; Analyse
+                </button>
+            </form>
+            <a href="{{ url_for('download_template') }}" class="template-link">
+                <i class="fa-solid fa-file-arrow-down"></i> Download Template
+            </a>
+        </div>
+
+        <!-- DB Stats -->
+        <div class="side-card">
+            <div class="side-card-title">
+                <i class="fa-solid fa-database"></i> Database
+            </div>
+            <div class="db-stat"><span>Engine</span><span class="db-val">SQLite3</span></div>
+            <div class="db-stat"><span>Records</span><span class="db-val">{{ total_records }}</span></div>
+            <div class="db-stat"><span>Anomalies</span><span class="db-val {% if anomaly_count > 0 %}text-red{% endif %}">{{ anomaly_count }}</span></div>
+            <div class="db-stat"><span>File</span><span class="db-val">heartsync.db</span></div>
+        </div>
+
+        <!-- Legend -->
+        <div class="side-card">
+            <div class="side-card-title"><i class="fa-solid fa-circle-info"></i> Legend</div>
+            <div class="legend-item"><span class="dot dot-green"></span> Normal (&nbsp;60–100 bpm&nbsp;)</div>
+            <div class="legend-item"><span class="dot dot-orange"></span> Tachycardia (&gt;100 bpm)</div>
+            <div class="legend-item"><span class="dot dot-teal"></span> Bradycardia (&lt;60 bpm)</div>
+            <div class="legend-item"><span class="dot dot-red"></span> Outlier (Isolation Forest)</div>
+            <hr class="legend-hr">
+            <div class="legend-item"><span class="dot dot-blue"></span> Stress: Low</div>
+            <div class="legend-item"><span class="dot dot-orange"></span> Stress: Medium</div>
+            <div class="legend-item"><span class="dot dot-red"></span> Stress: High</div>
+        </div>
+
+    </aside>
+
+    <!-- ─── Main ─── -->
+    <main class="main">
+
+        <!-- Flash Alerts -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-stack">
+            {% for cat, msg in messages %}
+            <div class="flash flash-{{ cat }}">
+                <i class="fa-solid {% if cat == 'success' %}fa-circle-check{% else %}fa-circle-exclamation{% endif %}"></i>
+                <span>{{ msg }}</span>
+                <button onclick="this.parentElement.remove()">✕</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <!-- Page Title -->
+        <div class="page-title">
+            <div>
+                <h1>Anomaly Detection Dashboard</h1>
+                <p>Isolation Forest · Rule-based Cardiac Classification · Stress Prediction</p>
+            </div>
+            <a href="{{ url_for('add_patient_page') }}" class="btn btn-primary">
+                <i class="fa-solid fa-user-plus"></i> Add Patient
+            </a>
+        </div>
+
+        <!-- KPI Cards -->
+        <section class="kpi-row">
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-cyan"><i class="fa-solid fa-database"></i></div>
+                <div class="kpi-body">
+                    <span class="kpi-label">Total Readings</span>
+                    <span class="kpi-value">{{ total_records }}</span>
+                </div>
+            </div>
+            <div class="kpi-card {% if anomaly_count > 0 %}kpi-border-red{% endif %}">
+                <div class="kpi-icon kpi-red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div class="kpi-body">
+                    <span class="kpi-label">Anomalies (IF)</span>
+                    <span class="kpi-value {% if anomaly_count > 0 %}text-red{% endif %}">{{ anomaly_count }}</span>
+                </div>
+            </div>
+            <div class="kpi-card {% if tachycardia_count > 0 %}kpi-border-orange{% endif %}">
+                <div class="kpi-icon kpi-orange"><i class="fa-solid fa-gauge-high"></i></div>
+                <div class="kpi-body">
+                    <span class="kpi-label">Tachycardia</span>
+                    <span class="kpi-value {% if tachycardia_count > 0 %}text-orange{% endif %}">{{ tachycardia_count }}</span>
+                </div>
+            </div>
+            <div class="kpi-card {% if bradycardia_count > 0 %}kpi-border-teal{% endif %}">
+                <div class="kpi-icon kpi-teal"><i class="fa-solid fa-gauge-simple"></i></div>
+                <div class="kpi-body">
+                    <span class="kpi-label">Bradycardia</span>
+                    <span class="kpi-value {% if bradycardia_count > 0 %}text-teal{% endif %}">{{ bradycardia_count }}</span>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-pink"><i class="fa-solid fa-heart"></i></div>
+                <div class="kpi-body">
+                    <span class="kpi-label">Avg Heart Rate</span>
+                    <span class="kpi-value">{{ avg_heart_rate }} <span class="kpi-unit">bpm</span></span>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-indigo"><i class="fa-solid fa-droplet"></i></div>
+                <div class="kpi-body">
+                    <span class="kpi-label">Avg SpO2</span>
+                    <span class="kpi-value">{{ avg_spo2 }} <span class="kpi-unit">%</span></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Heart Rate Analysis -->
+        <section class="panel">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="fa-solid fa-heart-circle-check"></i> Accurate Heart-Rate Analysis</h2>
+                <span class="hr-zone-pill
+                    {% if hr_analysis.latest_zone == 'Within Expected' %}zone-within
+                    {% elif hr_analysis.latest_zone == 'Below Expected' %}zone-below
+                    {% elif hr_analysis.latest_zone == 'Above Expected' %}zone-above
+                    {% else %}zone-nodata{% endif %}">
+                    <i class="fa-solid fa-circle-dot"></i> {{ hr_analysis.latest_zone }}
+                </span>
+            </div>
+            <div class="hr-analysis-grid">
+                <div class="hr-stat">
+                    <span class="hr-stat-label">Latest Heart Rate</span>
+                    <span class="hr-stat-value">{{ hr_analysis.latest_hr }} <span class="kpi-unit">bpm</span></span>
+                    <span class="hr-stat-sub">{{ hr_analysis.latest_condition }} · {{ hr_analysis.latest_activity | title }}</span>
+                </div>
+                <div class="hr-stat">
+                    <span class="hr-stat-label">Expected Range</span>
+                    <span class="hr-stat-value">{{ hr_analysis.expected_range }}</span>
+                    <span class="hr-stat-sub">bpm for {{ hr_analysis.latest_activity }}</span>
+                </div>
+                <div class="hr-stat">
+                    <span class="hr-stat-label">Average HR</span>
+                    <span class="hr-stat-value">{{ hr_analysis.avg }} <span class="kpi-unit">bpm</span></span>
+                    <span class="hr-stat-sub">Range {{ hr_analysis.min }}–{{ hr_analysis.max }} bpm</span>
+                </div>
+                <div class="hr-stat">
+                    <span class="hr-stat-label">Variability (σ)</span>
+                    <span class="hr-stat-value">{{ hr_analysis.std }} <span class="kpi-unit">bpm</span></span>
+                    <span class="hr-stat-sub">{{ hr_analysis.variability }} variability</span>
+                </div>
+                <div class="hr-stat">
+                    <span class="hr-stat-label">Trend</span>
+                    <span class="hr-stat-value
+                        {% if hr_analysis.trend == 'Rising' %}trend-rising
+                        {% elif hr_analysis.trend == 'Falling' %}trend-falling
+                        {% else %}trend-stable{% endif %}">
+                        <i class="fa-solid {% if hr_analysis.trend == 'Rising' %}fa-arrow-trend-up{% elif hr_analysis.trend == 'Falling' %}fa-arrow-trend-down{% else %}fa-equals{% endif %}"></i>
+                        {{ hr_analysis.trend }}
+                    </span>
+                    <span class="hr-stat-sub">Across recent readings</span>
+                </div>
+                <div class="hr-stat">
+                    <span class="hr-stat-label">Resting vs Active Avg</span>
+                    <span class="hr-stat-value">{{ hr_analysis.resting_avg }} / {{ hr_analysis.active_avg }}</span>
+                    <span class="hr-stat-sub">Resting / Active bpm</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Health Recommendations -->
+        <section class="panel">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="fa-solid fa-clipboard-list"></i> Health Recommendations</h2>
+                <span class="text-muted text-xs">Based on the latest reading &amp; trends</span>
+            </div>
+            <div class="recommend-grid">
+                {% for rec in recommendations %}
+                <div class="recommend-card level-{{ rec.level }}">
+                    <div class="recommend-icon"><i class="fa-solid {{ rec.icon }}"></i></div>
+                    <div class="recommend-body">
+                        <span class="recommend-title">{{ rec.title }}</span>
+                        <span class="recommend-msg">{{ rec.message }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Chart -->
+        <section class="panel">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="fa-solid fa-chart-line"></i> Signals &amp; Anomaly Timeline</h2>
+                <div class="chart-legend">
+                    <span class="chip chip-green"><i class="fa-solid fa-circle"></i> Normal</span>
+                    <span class="chip chip-red"><i class="fa-solid fa-triangle-exclamation"></i> Outlier</span>
+                </div>
+            </div>
+            <div class="chart-body">
+                <div id="plotly-chart"><div class="chart-loading"><i class="fa-solid fa-circle-notch fa-spin"></i> Rendering…</div></div>
+            </div>
+        </section>
+
+
+        <!-- Readings Table -->
+        <section class="panel">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="fa-solid fa-table-list"></i> Patient Readings Log</h2>
+                <div class="search-wrap">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="tbl-search" placeholder="Search patient, activity, status…">
+                </div>
+            </div>
+            <div class="table-scroll">
+                <table id="readings-tbl">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Patient</th>
+                            <th>Timestamp</th>
+                            <th>HR (bpm)</th>
+                            <th>SpO2 (%)</th>
+                            <th>BP</th>
+                            <th>Temp (°C)</th>
+                            <th>Glucose</th>
+                            <th>Activity</th>
+                            <th>Stress</th>
+                            <th>Condition</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in readings %}
+                        <tr class="{% if r.is_anomaly %}row-outlier{% endif %}">
+                            <td class="text-muted">{{ r.id }}</td>
+                            <td class="fw-bold">{{ r.patient_id }}</td>
+                            <td class="text-muted text-xs">{{ r.timestamp }}</td>
+                            <td class="fw-bold">{{ r.heart_rate }}</td>
+                            <td class="{% if r.spo2_level < 92 %}text-red fw-bold{% endif %}">{{ r.spo2_level }}%</td>
+                            <td>{{ r.blood_pressure_sys }}/{{ r.blood_pressure_dia }}</td>
+                            <td>{{ r.body_temperature }}</td>
+                            <td>{{ r.blood_glucose }}</td>
+                            <td><span class="chip-sm chip-{{ r.activity_type }}">{{ r.activity_type }}</span></td>
+                            <td><span class="chip-sm stress-{{ r.predicted_stress_level | lower }}">{{ r.predicted_stress_level }}</span></td>
+                            <td><span class="chip-sm cond-{{ r.heart_condition | lower }}">{{ r.heart_condition }}</span></td>
+                            <td>
+                                {% if r.is_anomaly %}
+                                <span class="status-chip outlier"><i class="fa-solid fa-triangle-exclamation"></i> Outlier</span>
+                                {% else %}
+                                <span class="status-chip normal"><i class="fa-solid fa-check"></i> Normal</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form method="POST" action="{{ url_for('delete_reading', rid=r.id) }}"
+                                      onsubmit="return confirm('Delete this record?')">
+                                    <button class="btn-icon-del" title="Delete">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+</div><!-- /page-body -->
+
+<script>
+const DATA = {{ readings | tojson | safe }};
+
+/* Table search */
+document.getElementById('tbl-search').addEventListener('input', function(){
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('#readings-tbl tbody tr').forEach(tr => {
+        tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+});
+
+/* File upload feedback */
+const fi = document.getElementById('file-input');
+const fl = document.getElementById('file-label');
+const ub = document.getElementById('upload-btn');
+const dz = document.getElementById('drop-zone');
+
+fi.addEventListener('change', () => {
+    if(fi.files.length){ fl.textContent=fi.files[0].name; fl.classList.add('chosen'); ub.removeAttribute('disabled'); }
+});
+['dragover','dragenter'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.add('dz-hover');}));
+['dragleave','drop'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.remove('dz-hover');
+    if(ev.type==='drop'&&ev.dataTransfer.files.length){ fi.files=ev.dataTransfer.files; fi.dispatchEvent(new Event('change')); }
+}));
+
+/* Plotly chart */
+(function(){
+    if(!DATA.length) return;
+    const ts  = DATA.map((d,i)=>d.timestamp||String(i));
+    const ecg = DATA.map(d=>d.ecg_signal);
+    const hr  = DATA.map(d=>d.heart_rate);
+    const sp  = DATA.map(d=>d.spo2_level);
+    const ax=[],ay=[],bx=[],by=[];
+    DATA.forEach((d,i)=>{
+        if(d.is_anomaly){ const t=d.timestamp||String(i); ax.push(t);ay.push(d.heart_rate); bx.push(t);by.push(d.ecg_signal); }
+    });
+    const base={type:'scatter',xaxis:'x'};
+    const traces=[
+        {...base,x:ts,y:ecg,name:'ECG Signal',mode:'lines',line:{color:'#00f2fe',width:2},yaxis:'y'},
+        {...base,x:bx,y:by,name:'Outlier (ECG)',mode:'markers',marker:{size:9,color:'#ff3366',symbol:'circle',line:{color:'#fff',width:1}},yaxis:'y'},
+        {...base,x:ts,y:hr,name:'Heart Rate',mode:'lines+markers',line:{color:'#00ff87',width:1.5},marker:{size:4,color:'#00ff87'},yaxis:'y2'},
+        {...base,x:ax,y:ay,name:'Outlier (HR)',mode:'markers',marker:{size:10,color:'#ff3366',symbol:'triangle-up',line:{color:'#fff',width:1.5}},yaxis:'y2'},
+        {...base,x:ts,y:sp,name:'SpO2',mode:'lines',line:{color:'#ec4899',width:1.5,dash:'dash'},yaxis:'y3'},
+    ];
+    const layout={
+        paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',
+        font:{family:'Outfit,sans-serif',color:'#94a3b8'},
+        margin:{t:30,b:50,l:60,r:40},hovermode:'x unified',showlegend:true,
+        legend:{orientation:'h',y:1.1,x:1,xanchor:'right',font:{size:11,color:'#e2e8f0'}},
+        grid:{rows:3,columns:1,pattern:'independent'},
+        xaxis:{anchor:'y3',gridcolor:'#334155',linecolor:'#475569',tickfont:{size:10}},
+        yaxis :{domain:[0.70,1.0],title:{text:'ECG (mV)',font:{size:11}},gridcolor:'#1e293b',linecolor:'#334155',zerolinecolor:'#475569'},
+        yaxis2:{domain:[0.35,0.65],title:{text:'HR (bpm)',font:{size:11}},gridcolor:'#1e293b',linecolor:'#334155',zerolinecolor:'#475569'},
+        yaxis3:{domain:[0.00,0.28],title:{text:'SpO2 (%)',font:{size:11}},gridcolor:'#1e293b',linecolor:'#334155',zerolinecolor:'#475569'},
+    };
+    document.getElementById('plotly-chart').innerHTML='';
+    Plotly.newPlot('plotly-chart',traces,layout,{responsive:true,displaylogo:false,modeBarButtonsToRemove:['lasso2d','select2d']});
+})();
+</script>
+
+{% include '_chatbot.html' %}
+</body>
+</html>

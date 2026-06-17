@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HeartSync — Log In</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="auth-brand">
+            <i class="fa-solid fa-heart-pulse brand-icon"></i>
+            <span>Heart<span class="brand-accent">Sync</span></span>
+        </div>
+        <p class="auth-sub">Sign in to access the patient monitoring dashboard.</p>
+
+        <!-- Flash Alerts -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-stack">
+            {% for cat, msg in messages %}
+            <div class="flash flash-{{ cat }}">
+                <i class="fa-solid {% if cat == 'success' %}fa-circle-check{% else %}fa-circle-exclamation{% endif %}"></i>
+                <span>{{ msg }}</span>
+                <button onclick="this.parentElement.remove()">✕</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <form method="POST" class="entry-form">
+            <div class="field">
+                <label for="f-username">Username</label>
+                <input id="f-username" type="text" name="username" placeholder="e.g. dr.priya" required autofocus>
+            </div>
+            <div class="field">
+                <label for="f-password">Password</label>
+                <input id="f-password" type="password" name="password" placeholder="••••••••" required>
+            </div>
+            <div class="form-actions form-actions-stack">
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fa-solid fa-right-to-bracket"></i> Log In
+                </button>
+            </div>
+        </form>
+
+        <p class="auth-switch">
+            Don't have an account? <a href="{{ url_for('signup') }}">Create one</a>
+        </p>
+    </div>
+</div>
+
+</body>
+</html>
