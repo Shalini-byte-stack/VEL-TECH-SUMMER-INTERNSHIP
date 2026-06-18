@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="HeartSync — Interactive analytics & health insights">
+    <title>HeartSync — Analytics</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+</head>
+<body>
+
+{% include '_navbar.html' %}
+
+<!-- ═══════════════════════════ PAGE BODY ═══════════════════════════ -->
+<div class="page-body">
+
+    <!-- ─── Sidebar ─── -->
+    <aside class="sidebar">
+        <div class="side-card">
+            <div class="side-card-title">
+                <i class="fa-solid fa-database"></i> Database
+            </div>
+            <div class="db-stat"><span>Records</span><span class="db-val">{{ total_records }}</span></div>
+            <div class="db-stat"><span>Anomalies</span><span class="db-val {% if anomaly_count > 0 %}text-red{% endif %}">{{ anomaly_count }}</span></div>
+            <div class="db-stat"><span>Tachycardia</span><span class="db-val text-orange">{{ tachycardia_count }}</span></div>
+            <div class="db-stat"><span>Bradycardia</span><span class="db-val text-teal">{{ bradycardia_count }}</span></div>
+            <div class="db-stat"><span>Avg HR</span><span class="db-val">{{ avg_heart_rate }} bpm</span></div>
+            <div class="db-stat"><span>Avg SpO2</span><span class="db-val">{{ avg_spo2 }}%</span></div>
+        </div>
+
+        <div class="side-card">
+            <div class="side-card-title"><i class="fa-solid fa-heart-circle-check"></i> HR Snapshot</div>
+            <div class="db-stat"><span>Latest HR</span><span class="db-val">{{ hr_analysis.latest_hr }} bpm</span></div>
+            <div class="db-stat"><span>Zone</span><span class="db-val">{{ hr_analysis.latest_zone }}</span></div>
+            <div class="db-stat"><span>Expected</span><span class="db-val">{{ hr_analysis.expected_range }}</span></div>
+            <div class="db-stat"><span>Trend</span><span class="db-val">{{ hr_analysis.trend }}</span></div>
+            <div class="db-stat"><span>Variability</span><span class="db-val">{{ hr_analysis.variability }}</span></div>
+        </div>
+
+        <div class="side-card">
+            <div class="side-card-title"><i class="fa-solid fa-circle-info"></i> Chart Guide</div>
+            <div class="legend-item"><span class="dot dot-green"></span> Normal</div>
+            <div class="legend-item"><span class="dot dot-orange"></span> Tachycardia / Medium Stress</div>
+            <div class="legend-item"><span class="dot dot-teal"></span> Bradycardia</div>
+            <div class="legend-item"><span class="dot dot-red"></span> Outlier / High Stress</div>
+        </div>
+    </aside>
+
+    <!-- ─── Main ─── -->
+    <main class="main">
+
+        <!-- Flash Alerts -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-stack">
+            {% for cat, msg in messages %}
+            <div class="flash flash-{{ cat }}">
+                <i class="fa-solid {% if cat == 'success' %}fa-circle-check{% else %}fa-circle-exclamation{% endif %}"></i>
+                <span>{{ msg }}</span>
+                <button onclick="this.parentElement.remove()">✕</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <!-- Page Title -->
+        <div class="page-title">
+            <div>
+                <h1>Interactive Analytics</h1>
+                <p>Trends, distributions &amp; correlations across all patient readings</p>
+            </div>
+        </div>
+
+        {% if total_records == 0 %}
+        <section class="panel">
+            <div class="chart-body" style="text-align:center; padding:3rem 1rem; color:var(--text-2);">
+                <i class="fa-solid fa-chart-pie" style="font-size:2rem; margin-bottom:0.75rem; display:block;"></i>
+                No data yet — add a patient reading or upload a CSV to see analytics.
+            </div>
+        </section>
+        {% else %}
+
+        <!-- Charts Grid -->
+        <div class="charts-grid">
+
+            <section class="panel">
+                <div class="panel-head">
+                    <h2 class="panel-title"><i class="fa-solid fa-heart-pulse"></i> Heart Rate Over Time</h2>
+                </div>
+                <div class="chart-panel-body" id="chart-hr-timeline"></div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-head">
+                    <h2 class="panel-title"><i class="fa-solid fa-brain"></i> Stress Level Distribution</h2>
+                </div>
+                <div class="chart-panel-body" id="chart-stress-pie"></div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-head">
+                    <h2 class="panel-title"><i class="fa-solid fa-person-running"></i> Activity Type Distribution</h2>
+                </div>
+                <div class="chart-panel-body" id="chart-activity-bar"></div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-head">
+                    <h2 class="panel-title"><i class="fa-solid fa-heart-circle-bolt"></i> Heart Condition Breakdown</h2>
+                </div>
+                <div class="chart-panel-body" id="chart-condition-donut"></div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-head">
+                    <h2 class="panel-title"><i class="fa-solid fa-lungs"></i> SpO2 vs Heart Rate</h2>
+                </div>
+                <div class="chart-panel-body" id="chart-spo2-hr"></div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-head">
+                    <h2 class="panel-title"><i class="fa-solid fa-droplet"></i> Blood Pressure Map</h2>
+                </div>
+                <div class="chart-panel-body" id="chart-bp-scatter"></div>
+            </section>
+
+            <section class="panel" style="grid-column: 1 / -1;">
+                <div class="panel-head">
+                    <h2 class="panel-title"><i class="fa-solid fa-users"></i> Average Heart Rate by Patient</h2>
+                </div>
+                <div class="chart-panel-body tall" id="chart-patient-hr"></div>
+            </section>
+
+        </div>
+        {% endif %}
+
+    </main>
+</div><!-- /page-body -->
+
+<script>
+const DATA = {{ readings | tojson | safe }};
+const DIST = {{ distributions | tojson | safe }};
+
+const LAYOUT_BASE = {
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(0,0,0,0)',
+    font: { family: 'Outfit,sans-serif', color: '#94a3b8', size: 11 },
+    margin: { t: 20, b: 50, l: 50, r: 30 },
+    legend: { orientation: 'h', y: 1.15, font: { size: 10, color: '#e2e8f0' } },
+};
+const GRID = { gridcolor: '#1e293b', linecolor: '#334155', zerolinecolor: '#475569' };
+const CONFIG = { responsive: true, displaylogo: false, modeBarButtonsToRemove: ['lasso2d', 'select2d'] };
+
+if (DATA.length) {
+    // ── 1. Heart Rate over time ──
+    (function () {
+        const chrono = [...DATA].reverse();
+        const ts = chrono.map((d, i) => d.timestamp || String(i));
+        const hr = chrono.map(d => d.heart_rate);
+        const ax = [], ay = [];
+        chrono.forEach((d, i) => { if (d.is_anomaly) { ax.push(ts[i]); ay.push(d.heart_rate); } });
+        const traces = [
+            { x: ts, y: hr, type: 'scatter', mode: 'lines+markers', name: 'Heart Rate',
+              line: { color: '#00ff87', width: 2 }, marker: { size: 4 } },
+            { x: ax, y: ay, type: 'scatter', mode: 'markers', name: 'Outlier',
+              marker: { size: 10, color: '#ff3366', symbol: 'circle', line: { color: '#fff', width: 1 } } },
+        ];
+        const layout = { ...LAYOUT_BASE, hovermode: 'x unified',
+            xaxis: { ...GRID, tickfont: { size: 9 } },
+            yaxis: { ...GRID, title: { text: 'bpm' } } };
+        Plotly.newPlot('chart-hr-timeline', traces, layout, CONFIG);
+    })();
+
+    // ── 2. Stress level pie ──
+    (function () {
+        const labels = Object.keys(DIST.stress);
+        const values = Object.values(DIST.stress);
+        const colorMap = { Low: '#00ff87', Medium: '#f59e0b', High: '#ff3366' };
+        const colors = labels.map(l => colorMap[l] || '#818cf8');
+        const trace = { labels, values, type: 'pie', hole: 0.45,
+            marker: { colors }, textinfo: 'label+percent', textfont: { size: 11 } };
+        const layout = { ...LAYOUT_BASE, showlegend: true };
+        Plotly.newPlot('chart-stress-pie', [trace], layout, CONFIG);
+    })();
+
+    // ── 3. Activity type bar ──
+    (function () {
+        const labels = Object.keys(DIST.activity);
+        const values = Object.values(DIST.activity);
+        const colorMap = { resting: '#94a3b8', walking: '#00f2fe', running: '#ec4899', sleeping: '#818cf8' };
+        const colors = labels.map(l => colorMap[l] || '#3b82f6');
+        const trace = { x: labels, y: values, type: 'bar', marker: { color: colors } };
+        const layout = { ...LAYOUT_BASE, showlegend: false,
+            xaxis: { ...GRID }, yaxis: { ...GRID, title: { text: 'Readings' } } };
+        Plotly.newPlot('chart-activity-bar', [trace], layout, CONFIG);
+    })();
+
+    // ── 4. Heart condition donut ──
+    (function () {
+        const labels = Object.keys(DIST.condition);
+        const values = Object.values(DIST.condition);
+        const colorMap = { Normal: '#00ff87', Tachycardia: '#f59e0b', Bradycardia: '#14b8a6' };
+        const colors = labels.map(l => colorMap[l] || '#818cf8');
+        const trace = { labels, values, type: 'pie', hole: 0.55,
+            marker: { colors }, textinfo: 'label+value', textfont: { size: 11 } };
+        const layout = { ...LAYOUT_BASE, showlegend: true };
+        Plotly.newPlot('chart-condition-donut', [trace], layout, CONFIG);
+    })();
+
+    // ── 5. SpO2 vs Heart Rate scatter ──
+    (function () {
+        const normal = DATA.filter(d => !d.is_anomaly);
+        const outlier = DATA.filter(d => d.is_anomaly);
+        const traces = [
+            { x: normal.map(d => d.heart_rate), y: normal.map(d => d.spo2_level),
+              mode: 'markers', type: 'scatter', name: 'Normal',
+              marker: { size: 7, color: '#00f2fe', opacity: 0.75 },
+              text: normal.map(d => d.patient_id), hovertemplate: '%{text}<br>HR: %{x} bpm<br>SpO2: %{y}%<extra></extra>' },
+            { x: outlier.map(d => d.heart_rate), y: outlier.map(d => d.spo2_level),
+              mode: 'markers', type: 'scatter', name: 'Outlier',
+              marker: { size: 10, color: '#ff3366', symbol: 'triangle-up', line: { color: '#fff', width: 1 } },
+              text: outlier.map(d => d.patient_id), hovertemplate: '%{text}<br>HR: %{x} bpm<br>SpO2: %{y}%<extra></extra>' },
+        ];
+        const layout = { ...LAYOUT_BASE,
+            xaxis: { ...GRID, title: { text: 'Heart Rate (bpm)' } },
+            yaxis: { ...GRID, title: { text: 'SpO2 (%)' } } };
+        Plotly.newPlot('chart-spo2-hr', traces, layout, CONFIG);
+    })();
+
+    // ── 6. Blood pressure scatter ──
+    (function () {
+        const colorMap = { Normal: '#00ff87', Tachycardia: '#f59e0b', Bradycardia: '#14b8a6' };
+        const conditions = [...new Set(DATA.map(d => d.heart_condition))];
+        const traces = conditions.map(cond => {
+            const subset = DATA.filter(d => d.heart_condition === cond);
+            return {
+                x: subset.map(d => d.blood_pressure_sys),
+                y: subset.map(d => d.blood_pressure_dia),
+                mode: 'markers', type: 'scatter', name: cond,
+                marker: { size: 8, color: colorMap[cond] || '#818cf8', opacity: 0.8 },
+                text: subset.map(d => d.patient_id),
+                hovertemplate: '%{text}<br>Sys: %{x} · Dia: %{y}<extra></extra>'
+            };
+        });
+        const layout = { ...LAYOUT_BASE,
+            xaxis: { ...GRID, title: { text: 'Systolic (mmHg)' } },
+            yaxis: { ...GRID, title: { text: 'Diastolic (mmHg)' } } };
+        Plotly.newPlot('chart-bp-scatter', traces, layout, CONFIG);
+    })();
+
+    // ── 7. Avg HR by patient ──
+    (function () {
+        const entries = Object.entries(DIST.patient_avg_hr);
+        const labels = entries.map(e => e[0]);
+        const values = entries.map(e => e[1]);
+        const colors = values.map(v => v > 100 ? '#f59e0b' : v < 60 ? '#14b8a6' : '#00ff87');
+        const trace = { x: labels, y: values, type: 'bar', marker: { color: colors },
+            hovertemplate: '%{x}<br>Avg HR: %{y} bpm<extra></extra>' };
+        const layout = { ...LAYOUT_BASE, showlegend: false,
+            xaxis: { ...GRID, tickangle: -35 },
+            yaxis: { ...GRID, title: { text: 'Avg Heart Rate (bpm)' } },
+            shapes: [
+                { type: 'line', x0: 0, x1: 1, xref: 'paper', y0: 60, y1: 60, line: { color: '#14b8a6', dash: 'dot', width: 1 } },
+                { type: 'line', x0: 0, x1: 1, xref: 'paper', y0: 100, y1: 100, line: { color: '#f59e0b', dash: 'dot', width: 1 } },
+            ] };
+        Plotly.newPlot('chart-patient-hr', [trace], layout, CONFIG);
+    })();
+}
+</script>
+
+{% include '_chatbot.html' %}
+</body>
+</html>
