@@ -1,0 +1,47 @@
+<!-- ═══════════════════════════ TOP NAVBAR ═══════════════════════════ -->
+<nav class="navbar">
+    <div class="nav-brand">
+        <i class="fa-solid fa-heart-pulse brand-icon"></i>
+        <span>Heart<span class="brand-accent">Sync</span></span>
+    </div>
+
+    <div class="nav-links">
+        <a href="{{ url_for('index') }}" class="nav-link {% if active_page=='dashboard' %}active{% endif %}">
+            <i class="fa-solid fa-gauge"></i> Dashboard
+        </a>
+        <a href="{{ url_for('add_patient_page') }}" class="nav-link {% if active_page=='add_patient' %}active{% endif %}">
+            <i class="fa-solid fa-user-plus"></i> Add Patient
+        </a>
+        <a href="{{ url_for('analytics') }}" class="nav-link {% if active_page=='analytics' %}active{% endif %}">
+            <i class="fa-solid fa-chart-pie"></i> Analytics
+        </a>
+        <a href="{{ url_for('alerts_page') }}" class="nav-link {% if active_page=='alerts' %}active{% endif %}">
+            <i class="fa-solid fa-bell"></i> Alerts
+            {% if pending_alert_count and pending_alert_count > 0 %}
+            <span class="nav-badge">{{ pending_alert_count }}</span>
+            {% endif %}
+        </a>
+        <a href="{{ url_for('download_template') }}" class="nav-link">
+            <i class="fa-solid fa-file-arrow-down"></i> Template
+        </a>
+        {% if active_page == 'dashboard' %}
+        <a href="{{ url_for('reset') }}" class="nav-link nav-link-danger"
+           onclick="return confirm('Reset all data to 10 demo records?')">
+            <i class="fa-solid fa-arrows-rotate"></i> Reset
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="nav-status">
+        {% if session.get('username') %}
+        <div class="nav-user-wrap">
+            <span class="nav-user"><i class="fa-solid fa-circle-user"></i> {{ session.get('username') }}</span>
+            <a href="{{ url_for('logout') }}" class="nav-logout" title="Log out">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </a>
+        </div>
+        {% endif %}
+        <span class="pulse-dot"></span>
+        <span class="nav-status-text">LIVE · SQLite3</span>
+    </div>
+</nav>

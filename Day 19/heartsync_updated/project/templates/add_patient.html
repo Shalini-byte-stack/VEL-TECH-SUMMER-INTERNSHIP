@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HeartSync — Add Patient</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+{% include '_navbar.html' %}
+
+<!-- Form Page -->
+<div class="form-page">
+
+    <!-- Flash Alerts -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-stack" style="max-width:700px;margin:0 auto 1rem;">
+        {% for cat, msg in messages %}
+        <div class="flash flash-{{ cat }}">
+            <i class="fa-solid {% if cat == 'success' %}fa-circle-check{% else %}fa-circle-exclamation{% endif %}"></i>
+            <span>{{ msg }}</span>
+            <button onclick="this.parentElement.remove()">✕</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="form-card">
+        <div class="form-card-header">
+            <div class="form-card-icon">
+                <i class="fa-solid fa-user-nurse"></i>
+            </div>
+            <div>
+                <h1 class="form-card-title">New Patient Reading</h1>
+                <p class="form-card-sub">Enter vitals below — the ML model will classify the reading instantly.</p>
+            </div>
+        </div>
+
+        <form action="{{ url_for('input_manual') }}" method="POST" class="entry-form" id="entry-form">
+
+            <!-- Section: Identity -->
+            <div class="form-section">
+                <div class="form-section-label"><i class="fa-solid fa-id-card"></i> Identity</div>
+                <div class="form-grid-2">
+                    <div class="field">
+                        <label for="f-pid">Patient ID</label>
+                        <input id="f-pid" type="text" name="patient_id" placeholder="e.g. P001" value="P001" required>
+                    </div>
+                    <div class="field">
+                        <label for="f-activity">Activity Type</label>
+                        <select id="f-activity" name="activity_type">
+                            <option value="resting" selected>Resting</option>
+                            <option value="walking">Walking</option>
+                            <option value="running">Running</option>
+                            <option value="sleeping">Sleeping</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-grid-2">
+                    <div class="field">
+                        <label for="f-pname">Patient Full Name <span class="unit">optional</span></label>
+                        <input id="f-pname" type="text" name="patient_name" placeholder="e.g. Anita Sharma"
+                               value="{{ patient.full_name if patient else '' }}">
+                    </div>
+                    <div class="field">
+                        <label for="f-pphone">Patient Phone Number</label>
+                        <input id="f-pphone" type="tel" name="patient_phone" placeholder="e.g. +91 98765 43210"
+                               value="{{ patient.phone_number if patient else '' }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section: Caretaker / Emergency Contact -->
+            <div class="form-section">
+                <div class="form-section-label"><i class="fa-solid fa-user-shield"></i> Caretaker / Emergency Contact</div>
+                <p class="field-hint" style="margin:-0.2rem 0 0.6rem;">
+                    If a reading shows a serious issue (anomaly, fall, very low SpO2, or hypertensive blood
+                    pressure), an SMS alert is sent to this number.
+                </p>
+                <div class="form-grid-2">
+                    <div class="field">
+                        <label for="f-cname">Caretaker Name</label>
+                        <input id="f-cname" type="text" name="caretaker_name" placeholder="e.g. Ramesh Sharma (Son)"
+                               value="{{ patient.caretaker_name if patient else '' }}">
+                    </div>
+                    <div class="field">
+                        <label for="f-cphone">Caretaker Phone Number</label>
+                        <input id="f-cphone" type="tel" name="caretaker_phone" placeholder="e.g. +91 98765 00000"
+                               value="{{ patient.caretaker_phone if patient else '' }}">
+                        <span class="field-hint">Use international format with country code (e.g. +91…)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section: Cardiac -->
+            <div class="form-section">
+                <div class="form-section-label"><i class="fa-solid fa-heart-pulse"></i> Cardiac Vitals</div>
+                <div class="form-grid-3">
+                    <div class="field">
+                        <label for="f-hr">Heart Rate <span class="unit">bpm</span></label>
+                        <input id="f-hr" type="number" name="heart_rate" value="75" min="20" max="250" required>
+                        <span class="field-hint">Normal: 60–100</span>
+                    </div>
+                    <div class="field">
+                        <label for="f-spo2">SpO2 <span class="unit">%</span></label>
+                        <input id="f-spo2" type="number" name="spo2_level" value="98.0" min="50" max="100" step="0.1" required>
+                        <span class="field-hint">Normal: ≥ 95%</span>
+                    </div>
+                    <div class="field">
+                        <label for="f-ecg">ECG Signal <span class="unit">mV</span></label>
+                        <input id="f-ecg" type="number" name="ecg_signal" value="0.05" step="0.001" required>
+                        <span class="field-hint">Typical: –0.5 to 0.5</span>
+                    </div>
+                </div>
+                <div class="form-grid-2">
+                    <div class="field">
+                        <label for="f-bpsys">BP Systolic <span class="unit">mmHg</span></label>
+                        <input id="f-bpsys" type="number" name="blood_pressure_sys" value="120" min="50" max="250" required>
+                    </div>
+                    <div class="field">
+                        <label for="f-bpdia">BP Diastolic <span class="unit">mmHg</span></label>
+                        <input id="f-bpdia" type="number" name="blood_pressure_dia" value="80" min="30" max="150" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section: Physiological -->
+            <div class="form-section">
+                <div class="form-section-label"><i class="fa-solid fa-thermometer-half"></i> Physiological Metrics</div>
+                <div class="form-grid-3">
+                    <div class="field">
+                        <label for="f-temp">Temperature <span class="unit">°C</span></label>
+                        <input id="f-temp" type="number" name="body_temperature" value="36.6" min="30" max="43" step="0.1" required>
+                    </div>
+                    <div class="field">
+                        <label for="f-glucose">Blood Glucose <span class="unit">mg/dL</span></label>
+                        <input id="f-glucose" type="number" name="blood_glucose" value="100" min="30" max="500" step="0.1" required>
+                    </div>
+                    <div class="field">
+                        <label for="f-resp">Resp. Rate <span class="unit">br/min</span></label>
+                        <input id="f-resp" type="number" name="respiration_rate" value="15" min="5" max="60" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section: Additional -->
+            <div class="form-section">
+                <div class="form-section-label"><i class="fa-solid fa-sliders"></i> Additional</div>
+                <div class="form-grid-2">
+                    <div class="field">
+                        <label for="f-steps">Step Count</label>
+                        <input id="f-steps" type="number" name="step_count" value="1000" min="0">
+                    </div>
+                    <div class="field stress-field">
+                        <label for="f-stress">Stress Index — <strong id="stress-display">50</strong></label>
+                        <input id="f-stress" type="range" name="stress_level_index" value="50" min="0" max="100"
+                               oninput="document.getElementById('stress-display').textContent=this.value"
+                               class="slider">
+                        <div class="slider-ends"><span>Low</span><span>High</span></div>
+                    </div>
+                </div>
+                <div class="field-check">
+                    <input id="f-fall" type="checkbox" name="fall_detected">
+                    <label for="f-fall"><i class="fa-solid fa-person-falling"></i> Fall Detected during reading</label>
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="form-actions">
+                <a href="{{ url_for('index') }}" class="btn btn-outline">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-stethoscope"></i> Save &amp; Analyse Reading
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<script>
+/* Live HR preview */
+document.getElementById('f-hr').addEventListener('input', function(){
+    const v = parseFloat(this.value);
+    const hint = this.nextElementSibling;
+    if(v < 60)       { hint.textContent='⚠ Bradycardia (<60 bpm)'; hint.style.color='#14b8a6'; }
+    else if(v > 100) { hint.textContent='⚠ Tachycardia (>100 bpm)'; hint.style.color='#f59e0b'; }
+    else             { hint.textContent='Normal: 60–100'; hint.style.color=''; }
+});
+</script>
+
+{% include '_chatbot.html' %}
+</body>
+</html>

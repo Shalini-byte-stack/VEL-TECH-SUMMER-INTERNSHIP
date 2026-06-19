@@ -1,0 +1,138 @@
+<!-- ═══════════════════════════ AI HEALTH CHATBOT WIDGET ═══════════════════════════ -->
+<div class="chatbot-launcher" id="chatbot-launcher" title="HeartSync Assistant">
+    <i class="fa-solid fa-comment-medical"></i>
+    <span class="chatbot-launcher-pulse"></span>
+</div>
+
+<div class="chatbot-window" id="chatbot-window">
+    <div class="chatbot-header">
+        <div class="chatbot-header-title">
+            <i class="fa-solid fa-robot"></i>
+            <div>
+                <strong>HeartSync Assistant</strong>
+                <span class="chatbot-status"><span class="dot dot-green"></span> Online</span>
+            </div>
+        </div>
+        <button class="chatbot-close" id="chatbot-close" title="Close">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <div class="chatbot-messages" id="chatbot-messages">
+        <div class="chat-msg chat-bot">
+            <div class="chat-avatar"><i class="fa-solid fa-heart-pulse"></i></div>
+            <div class="chat-bubble">
+                Hi! I'm your HeartSync health assistant. Ask me about your latest
+                heart rate, SpO2, stress level, anomalies, or type
+                <strong>"recommendations"</strong> for personalized tips.
+            </div>
+        </div>
+    </div>
+
+    <div class="chatbot-suggestions" id="chatbot-suggestions">
+        <button class="chip-suggestion" data-msg="Give me health recommendations">Recommendations</button>
+        <button class="chip-suggestion" data-msg="What's my heart rate analysis?">Heart Rate</button>
+        <button class="chip-suggestion" data-msg="Any anomalies?">Anomalies</button>
+        <button class="chip-suggestion" data-msg="Show me a summary">Summary</button>
+    </div>
+
+    <form class="chatbot-input-row" id="chatbot-form">
+        <input type="text" id="chatbot-input" placeholder="Ask about heart rate, stress, BP…" autocomplete="off">
+        <button type="submit" class="chatbot-send" title="Send">
+            <i class="fa-solid fa-paper-plane"></i>
+        </button>
+    </form>
+</div>
+
+<script>
+(function () {
+    const launcher    = document.getElementById('chatbot-launcher');
+    const win         = document.getElementById('chatbot-window');
+    const closeBtn    = document.getElementById('chatbot-close');
+    const messages    = document.getElementById('chatbot-messages');
+    const form        = document.getElementById('chatbot-form');
+    const input       = document.getElementById('chatbot-input');
+    const suggestions = document.getElementById('chatbot-suggestions');
+
+    function toggleChat(open) {
+        const willOpen = open !== undefined ? open : !win.classList.contains('open');
+        win.classList.toggle('open', willOpen);
+        launcher.classList.toggle('hidden', willOpen);
+        if (willOpen) input.focus();
+    }
+
+    launcher.addEventListener('click', () => toggleChat(true));
+    closeBtn.addEventListener('click', () => toggleChat(false));
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    function addMessage(text, sender) {
+        const row = document.createElement('div');
+        row.className = 'chat-msg chat-' + sender;
+
+        const avatar = document.createElement('div');
+        avatar.className = 'chat-avatar';
+        avatar.innerHTML = sender === 'bot'
+            ? '<i class="fa-solid fa-heart-pulse"></i>'
+            : '<i class="fa-solid fa-user"></i>';
+
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-bubble';
+        bubble.innerHTML = escapeHtml(text).replace(/\n/g, '<br>')
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+        row.appendChild(avatar);
+        row.appendChild(bubble);
+        messages.appendChild(row);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    function addTyping() {
+        const row = document.createElement('div');
+        row.className = 'chat-msg chat-bot';
+        row.id = 'chat-typing';
+        row.innerHTML = '<div class="chat-avatar"><i class="fa-solid fa-heart-pulse"></i></div>' +
+            '<div class="chat-bubble chat-typing"><span></span><span></span><span></span></div>';
+        messages.appendChild(row);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    function removeTyping() {
+        const t = document.getElementById('chat-typing');
+        if (t) t.remove();
+    }
+
+    async function sendMessage(text) {
+        if (!text.trim()) return;
+        addMessage(text, 'user');
+        input.value = '';
+        addTyping();
+        try {
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
+            const data = await res.json();
+            removeTyping();
+            addMessage(data.reply || "Sorry, I couldn't process that.", 'bot');
+        } catch (err) {
+            removeTyping();
+            addMessage('Connection error — please try again.', 'bot');
+        }
+    }
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        sendMessage(input.value);
+    });
+
+    suggestions.querySelectorAll('.chip-suggestion').forEach(btn => {
+        btn.addEventListener('click', () => sendMessage(btn.dataset.msg));
+    });
+})();
+</script>
